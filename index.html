@@ -7,89 +7,129 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="FM Radio">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#14110d">
+<meta name="theme-color" content="#24150b">
+<meta name="color-scheme" content="dark">
 <link rel="apple-touch-icon" id="ico" href="">
 <title>FM Radio</title>
 <style>
-:root{--bg:#f6efe2;--card:#fffaf0;--ink:#2b2016;--mut:#7d6a52;--amber:#c46a00;--onamber:#fff;--line:#e1d4bd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14110d;--card:#1f1a14;--ink:#f3e7d3;--mut:#a8967c;--amber:#ffb12e;--onamber:#1a1208;--line:#3a3027}}
-html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:#24150b}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif;min-height:100vh}
-main{max-width:520px;margin:0 auto;padding:16px 16px 40px}
-header{display:flex;align-items:baseline;justify-content:space-between;margin:6px 4px 14px}
-h1{margin:0;font-size:1.6rem;letter-spacing:.04em;font-weight:800;color:var(--amber)}
-#st{font-size:.85rem;color:var(--mut)}
-.dial{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 18px 18px}
-#name{font-size:1.4rem;font-weight:800;line-height:1.25;min-height:1.25em}
-#meta{color:var(--mut);margin-top:4px;font-size:.92rem;min-height:1.2em}
-.scale{position:relative;height:46px;margin:22px 4px 6px;background:repeating-linear-gradient(90deg,var(--mut) 0 1px,transparent 1px 12px) bottom/100% 14px no-repeat,repeating-linear-gradient(90deg,var(--mut) 0 2px,transparent 2px 60px) bottom/100% 26px no-repeat}
-#needle{position:absolute;top:0;bottom:0;width:3px;border-radius:2px;background:var(--amber);box-shadow:0 0 12px var(--amber);left:0;transition:left .5s cubic-bezier(.3,1.2,.4,1)}
-.ctl{display:flex;align-items:center;justify-content:center;gap:22px;margin-top:18px}
+body{margin:0;min-height:100vh;color:#2b1a0e;font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif;background:radial-gradient(120% 60% at 50% 0,#4a2d18 0,#24150b 70%) #24150b}
+main{max-width:480px;margin:0 auto;padding:14px 14px 40px}
 button{font:inherit;color:inherit;cursor:pointer}
-.ic{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:transparent;display:grid;place-items:center}
-.ic svg{width:24px;height:24px;fill:currentColor}
-#play{width:84px;height:84px;border-radius:50%;border:0;background:var(--amber);color:var(--onamber);display:grid;place-items:center}
-#play svg{width:38px;height:38px;fill:currentColor}
-#play.busy{animation:pulse 1s ease-in-out infinite}
-@keyframes pulse{50%{opacity:.6}}
-button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.tabs{display:flex;gap:8px;margin:20px 0 12px}
-.tab{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:transparent;font-weight:700}
-.tab[aria-selected="true"]{background:var(--amber);color:var(--onamber);border-color:var(--amber)}
-input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
-.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none}
+button:focus-visible,input:focus-visible{outline:3px solid #ffb12e;outline-offset:2px}
+
+/* radio body */
+.radio{border-radius:30px;padding:14px;border:3px solid #2f1c0e;background:repeating-linear-gradient(92deg,rgba(0,0,0,.09) 0 2px,transparent 2px 7px),linear-gradient(150deg,#9a6638,#5e3a1e 60%,#4a2d17);box-shadow:0 24px 40px rgba(0,0,0,.55),inset 0 2px 0 rgba(255,225,180,.28),inset 0 -3px 0 rgba(0,0,0,.35)}
+.face{border-radius:18px;padding:12px;background:linear-gradient(#efe3c8,#d9c9a4);box-shadow:inset 0 2px 6px rgba(0,0,0,.35)}
+.win{border-radius:12px;border:4px solid #b78d49;background:linear-gradient(#2c1b08,#170d03);padding:12px 14px 10px;box-shadow:inset 0 0 22px rgba(0,0,0,.8),0 1px 0 #fff6 }
+.top{display:flex;justify-content:space-between;align-items:center;color:#c9a15b;font-size:.78rem;letter-spacing:.12em}
+.lamp{display:inline-flex;align-items:center;gap:6px}
+.lamp i{width:10px;height:10px;border-radius:50%;background:#3a3a1a;box-shadow:inset 0 0 3px #000}
+.on-air .lamp i{background:#7dff6b;box-shadow:0 0 10px #7dff6b}
+#name{margin-top:8px;font-size:1.3rem;font-weight:800;line-height:1.2;min-height:2.4em;color:#ffb12e;text-shadow:0 0 12px rgba(255,177,46,.65);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#meta{color:#c9a15b;font-size:.85rem;min-height:1.2em;margin-top:2px}
+.scale{position:relative;height:34px;margin:12px 2px 0;background:repeating-linear-gradient(90deg,#c9a15b 0 1px,transparent 1px 10px) bottom/100% 9px no-repeat,repeating-linear-gradient(90deg,#c9a15b 0 2px,transparent 2px 20%) bottom/100% 18px no-repeat}
+#needle{position:absolute;top:0;bottom:0;left:0;width:3px;border-radius:2px;background:#ff4a2e;box-shadow:0 0 10px #ff4a2e;transition:left .6s cubic-bezier(.3,1.2,.4,1)}
+.nums{display:flex;justify-content:space-between;color:#c9a15b;font-size:.7rem;margin:3px 0 0}
+#st{color:#c9a15b;font-size:.78rem;margin-top:6px;text-align:right}
+
+.grille{margin-top:12px;height:78px;border-radius:12px;background:repeating-linear-gradient(90deg,#4a2f1a 0 4px,#1c1109 4px 8px);box-shadow:inset 0 3px 8px rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;gap:7px}
+.grille b{width:7px;height:10px;border-radius:3px;background:#ffb12e;opacity:.25;box-shadow:0 0 8px rgba(255,177,46,.6)}
+.playing .grille b{animation:eq 1s ease-in-out infinite alternate;opacity:.9}
+.grille b:nth-child(2){animation-delay:.15s}.grille b:nth-child(3){animation-delay:.3s}.grille b:nth-child(4){animation-delay:.45s}.grille b:nth-child(5){animation-delay:.6s}.grille b:nth-child(6){animation-delay:.2s}.grille b:nth-child(7){animation-delay:.5s}
+@keyframes eq{from{height:8px}to{height:48px}}
+
+.ctl{display:flex;align-items:center;justify-content:center;gap:26px;margin-top:14px}
+.btn{width:54px;height:54px;border-radius:50%;border:2px solid #7a5a22;background:radial-gradient(circle at 35% 30%,#f2d48a,#b58a3a 60%,#7a5a22);color:#2b1a0e;display:grid;place-items:center;box-shadow:0 4px 0 #5d4318,0 6px 10px rgba(0,0,0,.4)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #5d4318}
+.btn svg{width:22px;height:22px;fill:currentColor}
+#play{position:relative;width:92px;height:92px;border-radius:50%;border:3px solid #7a5a22;background:radial-gradient(circle at 35% 30%,#5a4a3a,#1c1410 70%);box-shadow:0 5px 0 #0c0805,0 8px 14px rgba(0,0,0,.5),inset 0 0 0 5px #b78d49;display:grid;place-items:center;color:#ffb12e}
+#play svg{width:36px;height:36px;fill:currentColor;position:relative}
+.ring{position:absolute;inset:6px;border-radius:50%;transition:transform .6s cubic-bezier(.3,1.2,.4,1)}
+.ring i{position:absolute;top:2px;left:50%;width:5px;height:14px;margin-left:-2.5px;border-radius:3px;background:#ffb12e;box-shadow:0 0 8px #ffb12e}
+#play.busy svg{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.4}}
+.lbl{display:flex;justify-content:center;gap:0;font-size:.72rem;color:#5a4222;margin-top:8px}
+.lbl span{width:80px;text-align:center}
+
+/* guide */
+.guide{margin-top:16px;border-radius:18px;padding:12px 14px 6px;background:#f1e6cc;box-shadow:0 10px 20px rgba(0,0,0,.4),inset 0 0 0 1px #d4c19a}
+.tabs{display:flex;gap:8px}
+.tab{flex:1;padding:10px;border-radius:12px;border:2px solid #b78d49;background:transparent;font-weight:700;color:#5a4222}
+.tab[aria-selected="true"]{background:#7a4a22;color:#fff3da;border-color:#7a4a22}
+input[type=text]{width:100%;margin-top:12px;font:inherit;color:#2b1a0e;background:#fff9ea;border:2px solid #d4c19a;border-radius:12px;padding:12px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 6px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:.9rem}
-.opt{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:.88rem;margin:8px 2px}
+.chip{flex:none;border:2px solid #b78d49;background:#fff9ea;border-radius:999px;padding:7px 14px;font-size:.88rem;font-weight:600;color:#5a4222}
+.chip.sel{background:#7a4a22;color:#fff3da;border-color:#7a4a22}
+.opt{display:flex;align-items:center;gap:8px;color:#6b5230;font-size:.86rem;margin:4px 2px 2px}
 ul{list-style:none;margin:6px 0 0;padding:0}
-li{display:flex;align-items:center;border-bottom:1px solid var(--line)}
-li .row{flex:1;text-align:left;background:none;border:0;padding:13px 4px;min-width:0}
+li{display:flex;align-items:center;border-bottom:1px solid #d4c19a}
+li:last-child{border-bottom:0}
+li .row{flex:1;text-align:left;background:none;border:0;padding:12px 4px;min-width:0}
 li .row b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-li .row span{color:var(--mut);font-size:.82rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-li.on .row b{color:var(--amber)}
-li .s{background:none;border:0;color:var(--amber);font-size:1.5rem;padding:6px 12px;line-height:1}
-.note{color:var(--mut);font-size:.9rem;padding:16px 4px}
+li .row span{display:block;color:#7b6340;font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+li.on .row b{color:#c2410c}
+li.on .row b::before{content:"● ";color:#c2410c}
+li .s{background:none;border:0;color:#b8741a;font-size:1.5rem;padding:6px 12px;line-height:1}
+.note{color:#7b6340;font-size:.9rem;padding:14px 4px}
 </style>
 </head>
 <body>
 <main>
-<header><h1>FM Radio</h1><span id="st" aria-live="polite">Pick a station</span></header>
-<section class="dial">
+<div class="radio" id="radio">
+<div class="face">
+<div class="win">
+<div class="top"><span>FM STEREO</span><span class="lamp"><i></i>ON AIR</span></div>
 <div id="name">Find a station below</div>
 <div id="meta"></div>
 <div class="scale"><i id="needle"></i></div>
-<div class="ctl">
-<button class="ic" id="prev" aria-label="Previous station"><svg viewBox="0 0 24 24"><path d="M15.4 5.4 14 4l-8 8 8 8 1.4-1.4L8.8 12z"/></svg></button>
-<button id="play" aria-label="Play"></button>
-<button class="ic" id="next" aria-label="Next station"><svg viewBox="0 0 24 24"><path d="M8.6 5.4 10 4l8 8-8 8-1.4-1.4L15.2 12z"/></svg></button>
+<div class="nums"><span>88</span><span>92</span><span>96</span><span>100</span><span>104</span><span>108</span></div>
+<div id="st" aria-live="polite">Pick a station</div>
 </div>
-</section>
+<div class="grille" aria-hidden="true"><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div>
+<div class="ctl">
+<button class="btn" id="prev" aria-label="Previous station"><svg viewBox="0 0 24 24"><path d="M15.4 5.4 14 4l-8 8 8 8 1.4-1.4L8.8 12z"/></svg></button>
+<button id="play" aria-label="Play"><span class="ring" id="ring"><i></i></span><span id="pi"></span></button>
+<button class="btn" id="next" aria-label="Next station"><svg viewBox="0 0 24 24"><path d="M8.6 5.4 10 4l8 8-8 8-1.4-1.4L15.2 12z"/></svg></button>
+</div>
+<div class="lbl"><span>Back</span><span>Play / Pause</span><span>Next</span></div>
+</div>
+</div>
+
+<section class="guide">
 <div class="tabs" role="tablist">
 <button class="tab" id="tFind" role="tab" aria-selected="true">Find</button>
 <button class="tab" id="tSaved" role="tab" aria-selected="false">Saved</button>
 </div>
 <div id="vFind">
-<input type="text" id="q" placeholder="Search, e.g. Vividh Bharati, Mirchi" enterkeyhint="search" autocomplete="off" autocapitalize="off">
+<input type="text" id="q" placeholder="Search a station name" enterkeyhint="search" autocomplete="off" autocapitalize="off">
 <div class="chips" id="chips"></div>
 <label class="opt"><input type="checkbox" id="in" checked> India only</label>
 <ul id="res"></ul>
 </div>
 <div id="vSaved" hidden><ul id="fav"></ul></div>
+</section>
 </main>
 <audio id="a" preload="none" playsinline></audio>
 <script>
 (function(){
 var $=function(id){return document.getElementById(id)};
-var a=$("a"),favs=[],results=[],queue=[],now=null,view="find",timer=0;
+var a=$("a"),favs=[],results=[],queue=[],now=null,view="find",timer=0,filt={name:"",state:""};
 var PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',PAUSE='<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
 var SERVERS=["https://de1.api.radio-browser.info","https://de2.api.radio-browser.info","https://fi1.api.radio-browser.info"];
-var CHIPS=["Vividh Bharati","FM Gold","Rainbow","Mirchi","Red FM","Radio City","Big FM"];
+var CHIPS=[
+{l:"Delhi",state:"Delhi"},{l:"Lucknow",name:"Lucknow"},{l:"Uttar Pradesh",state:"Uttar Pradesh"},
+{l:"Vividh Bharati",name:"Vividh Bharati"},{l:"FM Gold",name:"FM Gold"},{l:"Rainbow",name:"Rainbow"},
+{l:"Mirchi",name:"Mirchi"},{l:"Red FM",name:"Red FM"},{l:"Radio City",name:"Radio City"},{l:"Big FM",name:"Big FM"}
+];
 try{favs=JSON.parse(localStorage.getItem("fm.favs")||"[]")}catch(e){}
 try{now=JSON.parse(localStorage.getItem("fm.last")||"null")}catch(e){}
 function save(){try{localStorage.setItem("fm.favs",JSON.stringify(favs));localStorage.setItem("fm.last",JSON.stringify(now))}catch(e){}}
 function status(t){$("st").textContent=t}
-function setBtn(p,b){$("play").innerHTML=p?PAUSE:PLAY;$("play").setAttribute("aria-label",p?"Pause":"Play");$("play").classList.toggle("busy",!!b)}
+function setBtn(p,b){$("pi").innerHTML=p?PAUSE:PLAY;$("play").setAttribute("aria-label",p?"Pause":"Play");$("play").classList.toggle("busy",!!b);$("radio").classList.toggle("on-air",p&&!b);$("radio").classList.toggle("playing",p&&!b)}
 function isFav(s){return favs.some(function(f){return f.u===s.u})}
 function toggleFav(s){if(isFav(s))favs=favs.filter(function(f){return f.u!==s.u});else favs.push(s);save();draw()}
 function api(path){
@@ -101,18 +141,19 @@ return fetch(SERVERS[i++]+path,{signal:c.signal}).then(function(r){clearTimeout(
 }
 return next();
 }
-function find(q){
-var p="/json/stations/search?hidebroken=true&order=clickcount&reverse=true&limit=100";
-if(q)p+="&name="+encodeURIComponent(q);
+function find(){
+var p="/json/stations/search?hidebroken=true&order=clickcount&reverse=true&limit=200";
+if(filt.name)p+="&name="+encodeURIComponent(filt.name);
+if(filt.state)p+="&state="+encodeURIComponent(filt.state);
 if($("in").checked)p+="&countrycode=IN";
-status("Searching…");
+status("Searching…");results=[];draw();
 api(p).then(function(list){
 var seen={};
 results=list.filter(function(s){return s.url_resolved&&/^https:\/\//i.test(s.url_resolved)}).map(function(s){
 var g=[s.state,s.language].filter(Boolean).join(" · ")||(s.tags||"").split(",").slice(0,2).join(", ");
 return{n:(s.name||"").trim(),g:g,u:s.url_resolved}
-}).filter(function(s){var k=s.n.toLowerCase();if(!s.n||seen[k])return false;seen[k]=1;return true}).slice(0,50);
-status(results.length?results.length+" stations":"No results");draw();
+}).filter(function(s){var k=s.n.toLowerCase();if(!s.n||seen[k])return false;seen[k]=1;return true}).slice(0,60);
+status(results.length?results.length+" stations":"No stations found");draw();
 }).catch(function(){results=[];status("Can’t reach the directory");draw()});
 }
 function row(s,list,ul){
@@ -127,12 +168,13 @@ ul.appendChild(li);
 function draw(){
 var ul=$("res");ul.innerHTML="";
 results.forEach(function(s){row(s,results,ul)});
-if(!results.length&&view==="find"){var n=document.createElement("li");n.innerHTML='<div class="note">No stations with a secure (https) stream matched. Try another name or untick India only.</div>';if($("st").textContent==="Searching…")n.firstChild.textContent="Searching…";ul.appendChild(n)}
+if(!results.length&&$("st").textContent!=="Searching…"){var n=document.createElement("li");n.innerHTML='<div class="note"></div>';n.firstChild.textContent="No stations with a secure (https) stream matched. Try another name or untick India only.";ul.appendChild(n)}
 var fl=$("fav");fl.innerHTML="";
 favs.forEach(function(s){row(s,favs,fl)});
-if(!favs.length){var e=document.createElement("li");e.innerHTML='<div class="note">Tap ☆ on a station to save it here.</div>';fl.appendChild(e)}
-var q=queue,k=now?q.findIndex(function(x){return x.u===now.u}):-1,n2=q.length;
-$("needle").style.left=(k>=0&&n2>1?k/(n2-1)*98:k>=0?49:0)+"%";
+if(!favs.length){var e=document.createElement("li");e.innerHTML='<div class="note"></div>';e.firstChild.textContent="Tap ☆ on a station to save it here.";fl.appendChild(e)}
+var k=now?queue.findIndex(function(x){return x.u===now.u}):-1,n2=queue.length,pos=k>=0&&n2>1?k/(n2-1):0.5;
+$("needle").style.left=(pos*98)+"%";
+$("ring").style.transform="rotate("+(-130+260*pos)+"deg)";
 }
 function tune(s){
 now=s;save();$("name").textContent=s.n;$("meta").textContent=s.g||"Live radio";
@@ -158,17 +200,28 @@ if(a.paused)start();else{a.pause();setBtn(false);status("Paused")}
 $("next").onclick=function(){step(1)};
 $("prev").onclick=function(){step(-1)};
 a.addEventListener("playing",function(){status("Live");setBtn(true,false)});
-a.addEventListener("waiting",function(){status("Buffering…");$("play").classList.add("busy")});
+a.addEventListener("waiting",function(){status("Buffering…");setBtn(true,true)});
 a.addEventListener("error",function(){status("Can’t play (error "+(a.error?a.error.code:"?")+"), try another");setBtn(false)});
 function tab(v){
 view=v;$("vFind").hidden=v!=="find";$("vSaved").hidden=v!=="saved";
 $("tFind").setAttribute("aria-selected",v==="find");$("tSaved").setAttribute("aria-selected",v==="saved");
 }
-$("tFind").onclick=function(){tab("find")};
+$("tFind").onclick=function(){tab("find");queue=results};
 $("tSaved").onclick=function(){tab("saved");queue=favs};
-$("q").addEventListener("input",function(){clearTimeout(timer);var v=this.value.trim();timer=setTimeout(function(){find(v)},450)});
-$("in").onchange=function(){find($("q").value.trim())};
-CHIPS.forEach(function(c){var b=document.createElement("button");b.className="chip";b.type="button";b.textContent=c;b.onclick=function(){$("q").value=c;find(c)};$("chips").appendChild(b)});
+$("q").addEventListener("input",function(){
+filt={name:this.value.trim(),state:""};
+[].forEach.call(document.querySelectorAll(".chip"),function(c){c.classList.remove("sel")});
+clearTimeout(timer);timer=setTimeout(find,450);
+});
+$("in").onchange=find;
+CHIPS.forEach(function(c){
+var b=document.createElement("button");b.className="chip";b.type="button";b.textContent=c.l;
+b.onclick=function(){
+[].forEach.call(document.querySelectorAll(".chip"),function(x){x.classList.remove("sel")});
+b.classList.add("sel");$("q").value="";filt={name:c.name||"",state:c.state||""};find();
+};
+$("chips").appendChild(b);
+});
 if("mediaSession" in navigator){
 try{navigator.mediaSession.setActionHandler("play",function(){if(now)start()});
 navigator.mediaSession.setActionHandler("pause",function(){a.pause();setBtn(false)});
@@ -176,13 +229,15 @@ navigator.mediaSession.setActionHandler("nexttrack",function(){step(1)});
 navigator.mediaSession.setActionHandler("previoustrack",function(){step(-1)})}catch(e){}
 }
 try{var c=document.createElement("canvas");c.width=c.height=180;var x=c.getContext("2d");
-x.fillStyle="#14110d";x.fillRect(0,0,180,180);x.strokeStyle="#ffb12e";x.lineWidth=8;x.lineCap="round";
-[40,62,84].forEach(function(r){x.beginPath();x.arc(90,120,r,Math.PI*1.2,Math.PI*1.8);x.stroke()});
-x.fillStyle="#ffb12e";x.beginPath();x.arc(90,120,10,0,7);x.fill();$("ico").href=c.toDataURL("image/png")}catch(e){}
+x.fillStyle="#6b4224";x.fillRect(0,0,180,180);x.fillStyle="#1c1109";x.fillRect(22,40,136,100);
+x.strokeStyle="#ffb12e";x.lineWidth=6;x.lineCap="round";x.beginPath();x.moveTo(40,100);x.lineTo(140,100);x.stroke();
+x.strokeStyle="#ff4a2e";x.beginPath();x.moveTo(100,56);x.lineTo(100,124);x.stroke();
+x.fillStyle="#ffb12e";x.beginPath();x.arc(60,160,8,0,7);x.fill();x.beginPath();x.arc(120,160,8,0,7);x.fill();
+$("ico").href=c.toDataURL("image/png")}catch(e){}
 if(now){$("name").textContent=now.n;$("meta").textContent=now.g||"Live radio";queue=[now]}
 setBtn(false);
-if(favs.length&&!now){}
-find("");
+filt={name:"",state:"Delhi"};
+find();
 })();
 </script>
 </body>
