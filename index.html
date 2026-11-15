@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FM Radio">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#14110d">
+<link rel="apple-touch-icon" id="ico" href="">
+<title>FM Radio</title>
+<style>
+:root{--bg:#f6efe2;--card:#fffaf0;--ink:#2b2016;--mut:#7d6a52;--amber:#c46a00;--onamber:#fff;--line:#e1d4bd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14110d;--card:#1f1a14;--ink:#f3e7d3;--mut:#a8967c;--amber:#ffb12e;--onamber:#1a1208;--line:#3a3027}}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif;min-height:100vh}
+main{max-width:520px;margin:0 auto;padding:16px 16px 40px}
+header{display:flex;align-items:baseline;justify-content:space-between;margin:6px 4px 14px}
+h1{margin:0;font-size:1.6rem;letter-spacing:.04em;font-weight:800;color:var(--amber)}
+#st{font-size:.85rem;color:var(--mut)}
+.dial{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 18px 18px}
+#name{font-size:1.4rem;font-weight:800;line-height:1.25;min-height:1.25em}
+#meta{color:var(--mut);margin-top:4px;font-size:.92rem;min-height:1.2em}
+.scale{position:relative;height:46px;margin:22px 4px 6px;background:repeating-linear-gradient(90deg,var(--mut) 0 1px,transparent 1px 12px) bottom/100% 14px no-repeat,repeating-linear-gradient(90deg,var(--mut) 0 2px,transparent 2px 60px) bottom/100% 26px no-repeat}
+#needle{position:absolute;top:0;bottom:0;width:3px;border-radius:2px;background:var(--amber);box-shadow:0 0 12px var(--amber);left:0;transition:left .5s cubic-bezier(.3,1.2,.4,1)}
+.ctl{display:flex;align-items:center;justify-content:center;gap:22px;margin-top:18px}
+button{font:inherit;color:inherit;cursor:pointer}
+.ic{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:transparent;display:grid;place-items:center}
+.ic svg{width:24px;height:24px;fill:currentColor}
+#play{width:84px;height:84px;border-radius:50%;border:0;background:var(--amber);color:var(--onamber);display:grid;place-items:center}
+#play svg{width:38px;height:38px;fill:currentColor}
+#play.busy{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.6}}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.tabs{display:flex;gap:8px;margin:20px 0 12px}
+.tab{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:transparent;font-weight:700}
+.tab[aria-selected="true"]{background:var(--amber);color:var(--onamber);border-color:var(--amber)}
+input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:.9rem}
+.opt{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:.88rem;margin:8px 2px}
+ul{list-style:none;margin:6px 0 0;padding:0}
+li{display:flex;align-items:center;border-bottom:1px solid var(--line)}
+li .row{flex:1;text-align:left;background:none;border:0;padding:13px 4px;min-width:0}
+li .row b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+li .row span{color:var(--mut);font-size:.82rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+li.on .row b{color:var(--amber)}
+li .s{background:none;border:0;color:var(--amber);font-size:1.5rem;padding:6px 12px;line-height:1}
+.note{color:var(--mut);font-size:.9rem;padding:16px 4px}
+</style>
+</head>
+<body>
+<main>
+<header><h1>FM Radio</h1><span id="st" aria-live="polite">Pick a station</span></header>
+<section class="dial">
+<div id="name">Find a station below</div>
+<div id="meta"></div>
+<div class="scale"><i id="needle"></i></div>
+<div class="ctl">
+<button class="ic" id="prev" aria-label="Previous station"><svg viewBox="0 0 24 24"><path d="M15.4 5.4 14 4l-8 8 8 8 1.4-1.4L8.8 12z"/></svg></button>
+<button id="play" aria-label="Play"></button>
+<button class="ic" id="next" aria-label="Next station"><svg viewBox="0 0 24 24"><path d="M8.6 5.4 10 4l8 8-8 8-1.4-1.4L15.2 12z"/></svg></button>
+</div>
+</section>
+<div class="tabs" role="tablist">
+<button class="tab" id="tFind" role="tab" aria-selected="true">Find</button>
+<button class="tab" id="tSaved" role="tab" aria-selected="false">Saved</button>
+</div>
+<div id="vFind">
+<input type="text" id="q" placeholder="Search, e.g. Vividh Bharati, Mirchi" enterkeyhint="search" autocomplete="off" autocapitalize="off">
+<div class="chips" id="chips"></div>
+<label class="opt"><input type="checkbox" id="in" checked> India only</label>
+<ul id="res"></ul>
+</div>
+<div id="vSaved" hidden><ul id="fav"></ul></div>
+</main>
+<audio id="a" preload="none" playsinline></audio>
+<script>
+(function(){
+var $=function(id){return document.getElementById(id)};
+var a=$("a"),favs=[],results=[],queue=[],now=null,view="find",timer=0;
+var PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',PAUSE='<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
+var SERVERS=["https://de1.api.radio-browser.info","https://de2.api.radio-browser.info","https://fi1.api.radio-browser.info"];
+var CHIPS=["Vividh Bharati","FM Gold","Rainbow","Mirchi","Red FM","Radio City","Big FM"];
+try{favs=JSON.parse(localStorage.getItem("fm.favs")||"[]")}catch(e){}
+try{now=JSON.parse(localStorage.getItem("fm.last")||"null")}catch(e){}
+function save(){try{localStorage.setItem("fm.favs",JSON.stringify(favs));localStorage.setItem("fm.last",JSON.stringify(now))}catch(e){}}
+function status(t){$("st").textContent=t}
+function setBtn(p,b){$("play").innerHTML=p?PAUSE:PLAY;$("play").setAttribute("aria-label",p?"Pause":"Play");$("play").classList.toggle("busy",!!b)}
+function isFav(s){return favs.some(function(f){return f.u===s.u})}
+function toggleFav(s){if(isFav(s))favs=favs.filter(function(f){return f.u!==s.u});else favs.push(s);save();draw()}
+function api(path){
+var i=0;
+function next(){
+if(i>=SERVERS.length)return Promise.reject(new Error("net"));
+var c=new AbortController(),t=setTimeout(function(){c.abort()},8000);
+return fetch(SERVERS[i++]+path,{signal:c.signal}).then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.json()}).catch(function(){clearTimeout(t);return next()});
+}
+return next();
+}
+function find(q){
+var p="/json/stations/search?hidebroken=true&order=clickcount&reverse=true&limit=100";
+if(q)p+="&name="+encodeURIComponent(q);
+if($("in").checked)p+="&countrycode=IN";
+status("Searching…");
+api(p).then(function(list){
+var seen={};
+results=list.filter(function(s){return s.url_resolved&&/^https:\/\//i.test(s.url_resolved)}).map(function(s){
+var g=[s.state,s.language].filter(Boolean).join(" · ")||(s.tags||"").split(",").slice(0,2).join(", ");
+return{n:(s.name||"").trim(),g:g,u:s.url_resolved}
+}).filter(function(s){var k=s.n.toLowerCase();if(!s.n||seen[k])return false;seen[k]=1;return true}).slice(0,50);
+status(results.length?results.length+" stations":"No results");draw();
+}).catch(function(){results=[];status("Can’t reach the directory");draw()});
+}
+function row(s,list,ul){
+var li=document.createElement("li");if(now&&now.u===s.u)li.className="on";
+var b=document.createElement("button");b.className="row";b.type="button";
+var t=document.createElement("b");t.textContent=s.n;var m=document.createElement("span");m.textContent=s.g||"Live radio";
+b.appendChild(t);b.appendChild(m);b.onclick=function(){queue=list;tune(s)};li.appendChild(b);
+var f=document.createElement("button");f.className="s";f.type="button";f.textContent=isFav(s)?"★":"☆";
+f.setAttribute("aria-label",(isFav(s)?"Remove ":"Save ")+s.n);f.onclick=function(){toggleFav(s)};li.appendChild(f);
+ul.appendChild(li);
+}
+function draw(){
+var ul=$("res");ul.innerHTML="";
+results.forEach(function(s){row(s,results,ul)});
+if(!results.length&&view==="find"){var n=document.createElement("li");n.innerHTML='<div class="note">No stations with a secure (https) stream matched. Try another name or untick India only.</div>';if($("st").textContent==="Searching…")n.firstChild.textContent="Searching…";ul.appendChild(n)}
+var fl=$("fav");fl.innerHTML="";
+favs.forEach(function(s){row(s,favs,fl)});
+if(!favs.length){var e=document.createElement("li");e.innerHTML='<div class="note">Tap ☆ on a station to save it here.</div>';fl.appendChild(e)}
+var q=queue,k=now?q.findIndex(function(x){return x.u===now.u}):-1,n2=q.length;
+$("needle").style.left=(k>=0&&n2>1?k/(n2-1)*98:k>=0?49:0)+"%";
+}
+function tune(s){
+now=s;save();$("name").textContent=s.n;$("meta").textContent=s.g||"Live radio";
+if("mediaSession" in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:s.n,artist:s.g||"Live radio",album:"FM Radio"})}catch(e){}}
+a.src=s.u;start();draw();
+}
+function start(){
+status("Tuning…");setBtn(true,true);
+var p=a.play();
+if(p&&p.catch)p.catch(function(){status("Can’t play this stream");setBtn(false)});
+}
+function step(d){
+if(!queue.length&&now)queue=[now];
+if(!queue.length)return;
+var k=queue.findIndex(function(x){return now&&x.u===now.u});
+tune(queue[(k+d+queue.length)%queue.length]);
+}
+$("play").onclick=function(){
+if(!now)return;
+if(!a.src||a.src===location.href){tune(now);return}
+if(a.paused)start();else{a.pause();setBtn(false);status("Paused")}
+};
+$("next").onclick=function(){step(1)};
+$("prev").onclick=function(){step(-1)};
+a.addEventListener("playing",function(){status("Live");setBtn(true,false)});
+a.addEventListener("waiting",function(){status("Buffering…");$("play").classList.add("busy")});
+a.addEventListener("error",function(){status("Can’t play (error "+(a.error?a.error.code:"?")+"), try another");setBtn(false)});
+function tab(v){
+view=v;$("vFind").hidden=v!=="find";$("vSaved").hidden=v!=="saved";
+$("tFind").setAttribute("aria-selected",v==="find");$("tSaved").setAttribute("aria-selected",v==="saved");
+}
+$("tFind").onclick=function(){tab("find")};
+$("tSaved").onclick=function(){tab("saved");queue=favs};
+$("q").addEventListener("input",function(){clearTimeout(timer);var v=this.value.trim();timer=setTimeout(function(){find(v)},450)});
+$("in").onchange=function(){find($("q").value.trim())};
+CHIPS.forEach(function(c){var b=document.createElement("button");b.className="chip";b.type="button";b.textContent=c;b.onclick=function(){$("q").value=c;find(c)};$("chips").appendChild(b)});
+if("mediaSession" in navigator){
+try{navigator.mediaSession.setActionHandler("play",function(){if(now)start()});
+navigator.mediaSession.setActionHandler("pause",function(){a.pause();setBtn(false)});
+navigator.mediaSession.setActionHandler("nexttrack",function(){step(1)});
+navigator.mediaSession.setActionHandler("previoustrack",function(){step(-1)})}catch(e){}
+}
+try{var c=document.createElement("canvas");c.width=c.height=180;var x=c.getContext("2d");
+x.fillStyle="#14110d";x.fillRect(0,0,180,180);x.strokeStyle="#ffb12e";x.lineWidth=8;x.lineCap="round";
+[40,62,84].forEach(function(r){x.beginPath();x.arc(90,120,r,Math.PI*1.2,Math.PI*1.8);x.stroke()});
+x.fillStyle="#ffb12e";x.beginPath();x.arc(90,120,10,0,7);x.fill();$("ico").href=c.toDataURL("image/png")}catch(e){}
+if(now){$("name").textContent=now.n;$("meta").textContent=now.g||"Live radio";queue=[now]}
+setBtn(false);
+if(favs.length&&!now){}
+find("");
+})();
+</script>
+</body>
+</html>
