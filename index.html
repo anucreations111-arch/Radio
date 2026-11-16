@@ -106,6 +106,7 @@ li .s{background:none;border:0;color:#b8741a;font-size:1.5rem;padding:6px 12px;l
 </div>
 <div id="vFind">
 <input type="text" id="q" placeholder="Search a station name" enterkeyhint="search" autocomplete="off" autocapitalize="off">
+<div class="chips" id="cities"></div>
 <div class="chips" id="chips"></div>
 <label class="opt"><input type="checkbox" id="in" checked> India only</label>
 <label class="opt"><input type="checkbox" id="sec"> Only secure (https) streams</label>
@@ -149,11 +150,13 @@ return fetch(SERVERS[i++]+path,{signal:c.signal}).then(function(r){clearTimeout(
 return next();
 }
 function find(){
+var brand=filt.name,city=filt.city||"",delhi=/delhi/i.test(city);
 var p="/json/stations/search?hidebroken=true&order=clickcount&reverse=true&limit=500";
-if(filt.name)p+="&name="+encodeURIComponent(filt.name);
-if(filt.state)p+="&state="+encodeURIComponent(filt.state);
+if(brand)p+="&name="+encodeURIComponent(brand);
+else if(city&&!delhi)p+="&name="+encodeURIComponent(city);
+if(delhi)p+="&state=Delhi";else if(filt.state)p+="&state="+encodeURIComponent(filt.state);
 if($("in").checked)p+="&countrycode=IN";
-var feat=FEATURED.filter(function(f){return(!filt.name||f.n.toLowerCase().indexOf(filt.name.toLowerCase())>-1)&&(!filt.state||filt.state==="Delhi")});
+var feat=FEATURED.filter(function(f){return(!brand||f.n.toLowerCase().indexOf(brand.toLowerCase())>-1)&&(!city||delhi)});
 status("Searching…");results=[];draw();
 api(p).then(function(list){
 var seen={},only=$("sec").checked;
@@ -161,9 +164,15 @@ feat.forEach(function(f){seen[f.n.toLowerCase()]=1});
 var rest=list.filter(function(s){return s.url_resolved&&(!only||/^https:\/\//i.test(s.url_resolved))}).map(function(s){
 var g=[s.state,s.language].filter(Boolean).join(" · ")||(s.tags||"").split(",").slice(0,2).join(", ");
 if(!/^https:\/\//i.test(s.url_resolved))g=(g?g+" · ":"")+"may not play";
-return{n:(s.name||"").trim(),g:g,u:s.url_resolved}
-}).filter(function(s){var k=s.n.toLowerCase();if(!s.n||seen[k])return false;seen[k]=1;return true}).slice(0,150);
-results=feat.concat(rest);
+return{n:(s.name||"").trim(),g:g,u:s.url_resolved,st:(s.state||"")}
+}).filter(function(s){var k=s.n.toLowerCase();if(!s.n||seen[k])return false;seen[k]=1;return true});
+if(brand&&city&&!delhi){
+var A=rest.filter(function(s){return s.n.toLowerCase().indexOf(city.toLowerCase())>-1});
+var B=rest.filter(function(s){return A.indexOf(s)<0&&/uttar/i.test(s.st)});
+var AB=A.concat(B);
+if(AB.length)rest=AB;
+}
+results=feat.concat(rest.slice(0,150));
 status(results.length?results.length+" stations":"No stations found");draw();
 }).catch(function(){results=feat;status(feat.length?"Directory offline, showing AIR only":"Can’t reach the directory");draw()});
 }
@@ -222,23 +231,28 @@ $("tFind").setAttribute("aria-selected",v==="find");$("tSaved").setAttribute("ar
 $("tFind").onclick=function(){tab("find");queue=results};
 $("tSaved").onclick=function(){tab("saved");queue=favs};
 $("q").addEventListener("input",function(){
-filt={name:this.value.trim(),state:""};
-[].forEach.call(document.querySelectorAll(".chip"),function(c){c.classList.remove("sel")});
+filt={name:this.value.trim(),state:"",city:""};
+["cities","chips"].forEach(function(id){[].forEach.call($(id).children,function(x,i){x.classList.toggle("sel",i===0)})});
 clearTimeout(timer);timer=setTimeout(find,450);
 });
 $("in").onchange=find;
 $("sec").onchange=find;
-CHIPS.forEach(function(c){
-var b=document.createElement("button");b.className="chip";b.type="button";b.textContent=c.l;
-chipEls[c.l]=b;
+var CITIES=[{l:"All cities"},{l:"Delhi"},{l:"Lucknow"},{l:"Noida"},{l:"Kanpur"},{l:"Varanasi"},{l:"Prayagraj"},{l:"Agra"},{l:"Meerut"}];
+var BRANDS=[{l:"All stations"},{l:"Vividh Bharati"},{l:"FM Gold"},{l:"Rainbow"},{l:"Radio City"},{l:"Red FM"},{l:"Big FM"},{l:"Mirchi"},{l:"My FM"}];
+function mkChips(arr,box,key){
+arr.forEach(function(c,i){
+var b=document.createElement("button");b.className="chip"+(i===0?" sel":"");b.type="button";b.textContent=c.l;
 b.onclick=function(){
-var same=b.classList.contains("sel")&&c.l!=="All";
-[].forEach.call(document.querySelectorAll(".chip"),function(x){x.classList.remove("sel")});
-var use=same?CHIPS[0]:c;
-chipEls[use.l].classList.add("sel");$("q").value="";filt={name:use.name||"",state:use.state||""};find();
+var same=i>0&&filt[key]===c.l;
+[].forEach.call(box.children,function(x){x.classList.remove("sel")});
+if(same||i===0){filt[key]="";box.children[0].classList.add("sel")}else{filt[key]=c.l;b.classList.add("sel")}
+$("q").value="";find();
 };
-$("chips").appendChild(b);
+box.appendChild(b);
 });
+}
+mkChips(CITIES,$("cities"),"city");
+mkChips(BRANDS,$("chips"),"name");
 if("mediaSession" in navigator){
 try{navigator.mediaSession.setActionHandler("play",function(){if(now)start()});
 navigator.mediaSession.setActionHandler("pause",function(){a.pause();setBtn(false)});
@@ -253,8 +267,7 @@ x.fillStyle="#ffb12e";x.beginPath();x.arc(60,160,8,0,7);x.fill();x.beginPath();x
 $("ico").href=c.toDataURL("image/png")}catch(e){}
 if(now){$("name").textContent=now.n;$("meta").textContent=now.g||"Live radio";queue=[now]}
 setBtn(false);
-chipEls["All"].classList.add("sel");
-filt={name:"",state:""};
+filt={name:"",state:"",city:""};
 find();
 })();
 </script>
