@@ -120,7 +120,7 @@ li .s{background:none;border:0;color:#b8741a;font-size:1.5rem;padding:6px 12px;l
 (function(){
 var $=function(id){return document.getElementById(id)};
 try{if(navigator.audioSession)navigator.audioSession.type="playback"}catch(e){}
-var a=$("a"),favs=[],results=[],queue=[],now=null,view="find",timer=0,fell=false,filt={name:"",state:""};
+var a=$("a"),favs=[],results=[],queue=[],now=null,view="find",timer=0,wd=0,fell=false,filt={name:"",state:""};
 var PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',PAUSE='<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
 var SERVERS=["https://de1.api.radio-browser.info","https://de2.api.radio-browser.info","https://fi1.api.radio-browser.info"];
 var CHIPS=[
@@ -128,10 +128,11 @@ var CHIPS=[
 {l:"Vividh Bharati",name:"Vividh Bharati"},{l:"FM Gold",name:"FM Gold"},{l:"Rainbow",name:"Rainbow"},
 {l:"Mirchi",name:"Mirchi"},{l:"Red FM",name:"Red FM"},{l:"Radio City",name:"Radio City"},{l:"Big FM",name:"Big FM"}
 ];
+var TEST={n:"Test station (SomaFM Groove Salad)",g:"If this plays, the app works",u:"https://ice1.somafm.com/groovesalad-128-mp3"};
 var chipEls={},FEATURED=[
 {n:"Vividh Bharati (AIR)",g:"Delhi · Hindi · Akashvani",u:"https://air.pc.cdn.bitgravity.com/air/live/pbaudio001/playlist.m3u8"},
-{n:"AIR FM Gold Delhi 106.4",g:"Delhi · Hindi · Akashvani",u:"https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8"},
-{n:"AIR FM Rainbow Delhi 102.6",g:"Delhi · Hindi · Akashvani",u:"https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio004/hlspbaudio004_Auto.m3u8"}
+{n:"AIR FM Gold Delhi 106.4",g:"Delhi · Hindi · Akashvani",u:"https://air.pc.cdn.bitgravity.com/air/live/pbaudio005/playlist.m3u8"},
+{n:"AIR FM Rainbow Delhi 102.6",g:"Delhi · Hindi · Akashvani",u:"https://air.pc.cdn.bitgravity.com/air/live/pbaudio004/playlist.m3u8"}
 ];
 try{favs=JSON.parse(localStorage.getItem("fm.favs")||"[]")}catch(e){}
 try{now=JSON.parse(localStorage.getItem("fm.last")||"null")}catch(e){}
@@ -199,10 +200,15 @@ $("ring").style.transform="rotate("+(-130+260*pos)+"deg)";
 function tune(s){
 now=s;save();$("name").textContent=s.n;$("meta").textContent=s.g||"Live radio";
 if("mediaSession" in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:s.n,artist:s.g||"Live radio",album:"FM Radio"})}catch(e){}}
-fell=false;a.src=/^http:\/\//i.test(s.u)?s.u.replace(/^http:/i,"https:"):s.u;start();draw();
+fell=false;a.src=/^http:\/\//i.test(s.u)?s.u.replace(/^http:/i,"https:"):s.u;a.load();start();draw();
 }
 function start(){
-status("Tuning…");setBtn(true,true);
+status("Tuning…");setBtn(true,true);clearTimeout(wd);
+wd=setTimeout(function(){
+if(!a.paused&&a.readyState>=3)return;
+if(now&&/^http:\/\//i.test(now.u)&&!fell){fell=true;a.src=now.u;a.load();start();return}
+a.pause();setBtn(false);status("No response (net "+a.networkState+", ready "+a.readyState+"). Try another");
+},12000);
 var p=a.play();
 if(p&&p.catch)p.catch(function(){status("Can’t play this stream");setBtn(false)});
 }
@@ -219,7 +225,7 @@ if(a.paused)start();else{a.pause();setBtn(false);status("Paused")}
 };
 $("next").onclick=function(){step(1)};
 $("prev").onclick=function(){step(-1)};
-a.addEventListener("playing",function(){status("Live");setBtn(true,false)});
+a.addEventListener("playing",function(){clearTimeout(wd);status("Live");setBtn(true,false)});
 a.addEventListener("waiting",function(){status("Buffering…");setBtn(true,true)});
 a.addEventListener("error",function(){
 if(now&&/^http:\/\//i.test(now.u)&&!fell){fell=true;a.src=now.u;start();return}
