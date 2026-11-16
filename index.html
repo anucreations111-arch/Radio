@@ -118,6 +118,7 @@ li .s{background:none;border:0;color:#b8741a;font-size:1.5rem;padding:6px 12px;l
 <script>
 (function(){
 var $=function(id){return document.getElementById(id)};
+try{if(navigator.audioSession)navigator.audioSession.type="playback"}catch(e){}
 var a=$("a"),favs=[],results=[],queue=[],now=null,view="find",timer=0,fell=false,filt={name:"",state:""};
 var PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',PAUSE='<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
 var SERVERS=["https://de1.api.radio-browser.info","https://de2.api.radio-browser.info","https://fi1.api.radio-browser.info"];
