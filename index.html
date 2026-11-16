@@ -108,6 +108,7 @@ li .s{background:none;border:0;color:#b8741a;font-size:1.5rem;padding:6px 12px;l
 <input type="text" id="q" placeholder="Search a station name" enterkeyhint="search" autocomplete="off" autocapitalize="off">
 <div class="chips" id="chips"></div>
 <label class="opt"><input type="checkbox" id="in" checked> India only</label>
+<label class="opt"><input type="checkbox" id="sec"> Only secure (https) streams</label>
 <ul id="res"></ul>
 </div>
 <div id="vSaved" hidden><ul id="fav"></ul></div>
@@ -117,13 +118,18 @@ li .s{background:none;border:0;color:#b8741a;font-size:1.5rem;padding:6px 12px;l
 <script>
 (function(){
 var $=function(id){return document.getElementById(id)};
-var a=$("a"),favs=[],results=[],queue=[],now=null,view="find",timer=0,filt={name:"",state:""};
+var a=$("a"),favs=[],results=[],queue=[],now=null,view="find",timer=0,fell=false,filt={name:"",state:""};
 var PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',PAUSE='<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
 var SERVERS=["https://de1.api.radio-browser.info","https://de2.api.radio-browser.info","https://fi1.api.radio-browser.info"];
 var CHIPS=[
-{l:"Delhi",state:"Delhi"},{l:"Lucknow",name:"Lucknow"},{l:"Uttar Pradesh",state:"Uttar Pradesh"},
+{l:"All"},{l:"Delhi",state:"Delhi"},{l:"Lucknow",name:"Lucknow"},{l:"Uttar Pradesh",state:"Uttar Pradesh"},
 {l:"Vividh Bharati",name:"Vividh Bharati"},{l:"FM Gold",name:"FM Gold"},{l:"Rainbow",name:"Rainbow"},
 {l:"Mirchi",name:"Mirchi"},{l:"Red FM",name:"Red FM"},{l:"Radio City",name:"Radio City"},{l:"Big FM",name:"Big FM"}
+];
+var chipEls={},FEATURED=[
+{n:"Vividh Bharati (AIR)",g:"Delhi · Hindi · Akashvani",u:"https://air.pc.cdn.bitgravity.com/air/live/pbaudio001/playlist.m3u8"},
+{n:"AIR FM Gold Delhi 106.4",g:"Delhi · Hindi · Akashvani",u:"https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8"},
+{n:"AIR FM Rainbow Delhi 102.6",g:"Delhi · Hindi · Akashvani",u:"https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio004/hlspbaudio004_Auto.m3u8"}
 ];
 try{favs=JSON.parse(localStorage.getItem("fm.favs")||"[]")}catch(e){}
 try{now=JSON.parse(localStorage.getItem("fm.last")||"null")}catch(e){}
@@ -142,19 +148,23 @@ return fetch(SERVERS[i++]+path,{signal:c.signal}).then(function(r){clearTimeout(
 return next();
 }
 function find(){
-var p="/json/stations/search?hidebroken=true&order=clickcount&reverse=true&limit=200";
+var p="/json/stations/search?hidebroken=true&order=clickcount&reverse=true&limit=500";
 if(filt.name)p+="&name="+encodeURIComponent(filt.name);
 if(filt.state)p+="&state="+encodeURIComponent(filt.state);
 if($("in").checked)p+="&countrycode=IN";
+var feat=FEATURED.filter(function(f){return(!filt.name||f.n.toLowerCase().indexOf(filt.name.toLowerCase())>-1)&&(!filt.state||filt.state==="Delhi")});
 status("Searching…");results=[];draw();
 api(p).then(function(list){
-var seen={};
-results=list.filter(function(s){return s.url_resolved&&/^https:\/\//i.test(s.url_resolved)}).map(function(s){
+var seen={},only=$("sec").checked;
+feat.forEach(function(f){seen[f.n.toLowerCase()]=1});
+var rest=list.filter(function(s){return s.url_resolved&&(!only||/^https:\/\//i.test(s.url_resolved))}).map(function(s){
 var g=[s.state,s.language].filter(Boolean).join(" · ")||(s.tags||"").split(",").slice(0,2).join(", ");
+if(!/^https:\/\//i.test(s.url_resolved))g=(g?g+" · ":"")+"may not play";
 return{n:(s.name||"").trim(),g:g,u:s.url_resolved}
-}).filter(function(s){var k=s.n.toLowerCase();if(!s.n||seen[k])return false;seen[k]=1;return true}).slice(0,60);
+}).filter(function(s){var k=s.n.toLowerCase();if(!s.n||seen[k])return false;seen[k]=1;return true}).slice(0,150);
+results=feat.concat(rest);
 status(results.length?results.length+" stations":"No stations found");draw();
-}).catch(function(){results=[];status("Can’t reach the directory");draw()});
+}).catch(function(){results=feat;status(feat.length?"Directory offline, showing AIR only":"Can’t reach the directory");draw()});
 }
 function row(s,list,ul){
 var li=document.createElement("li");if(now&&now.u===s.u)li.className="on";
@@ -168,7 +178,7 @@ ul.appendChild(li);
 function draw(){
 var ul=$("res");ul.innerHTML="";
 results.forEach(function(s){row(s,results,ul)});
-if(!results.length&&$("st").textContent!=="Searching…"){var n=document.createElement("li");n.innerHTML='<div class="note"></div>';n.firstChild.textContent="No stations with a secure (https) stream matched. Try another name or untick India only.";ul.appendChild(n)}
+if(!results.length&&$("st").textContent!=="Searching…"){var n=document.createElement("li");n.innerHTML='<div class="note"></div>';n.firstChild.textContent="No stations matched. Try another name, tap All, or untick India only.";ul.appendChild(n)}
 var fl=$("fav");fl.innerHTML="";
 favs.forEach(function(s){row(s,favs,fl)});
 if(!favs.length){var e=document.createElement("li");e.innerHTML='<div class="note"></div>';e.firstChild.textContent="Tap ☆ on a station to save it here.";fl.appendChild(e)}
@@ -179,7 +189,7 @@ $("ring").style.transform="rotate("+(-130+260*pos)+"deg)";
 function tune(s){
 now=s;save();$("name").textContent=s.n;$("meta").textContent=s.g||"Live radio";
 if("mediaSession" in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:s.n,artist:s.g||"Live radio",album:"FM Radio"})}catch(e){}}
-a.src=s.u;start();draw();
+fell=false;a.src=/^http:\/\//i.test(s.u)?s.u.replace(/^http:/i,"https:"):s.u;start();draw();
 }
 function start(){
 status("Tuning…");setBtn(true,true);
@@ -201,7 +211,9 @@ $("next").onclick=function(){step(1)};
 $("prev").onclick=function(){step(-1)};
 a.addEventListener("playing",function(){status("Live");setBtn(true,false)});
 a.addEventListener("waiting",function(){status("Buffering…");setBtn(true,true)});
-a.addEventListener("error",function(){status("Can’t play (error "+(a.error?a.error.code:"?")+"), try another");setBtn(false)});
+a.addEventListener("error",function(){
+if(now&&/^http:\/\//i.test(now.u)&&!fell){fell=true;a.src=now.u;start();return}
+status("Can’t play this one (error "+(a.error?a.error.code:"?")+"). Try another");setBtn(false)});
 function tab(v){
 view=v;$("vFind").hidden=v!=="find";$("vSaved").hidden=v!=="saved";
 $("tFind").setAttribute("aria-selected",v==="find");$("tSaved").setAttribute("aria-selected",v==="saved");
@@ -214,11 +226,15 @@ filt={name:this.value.trim(),state:""};
 clearTimeout(timer);timer=setTimeout(find,450);
 });
 $("in").onchange=find;
+$("sec").onchange=find;
 CHIPS.forEach(function(c){
 var b=document.createElement("button");b.className="chip";b.type="button";b.textContent=c.l;
+chipEls[c.l]=b;
 b.onclick=function(){
+var same=b.classList.contains("sel")&&c.l!=="All";
 [].forEach.call(document.querySelectorAll(".chip"),function(x){x.classList.remove("sel")});
-b.classList.add("sel");$("q").value="";filt={name:c.name||"",state:c.state||""};find();
+var use=same?CHIPS[0]:c;
+chipEls[use.l].classList.add("sel");$("q").value="";filt={name:use.name||"",state:use.state||""};find();
 };
 $("chips").appendChild(b);
 });
@@ -236,7 +252,8 @@ x.fillStyle="#ffb12e";x.beginPath();x.arc(60,160,8,0,7);x.fill();x.beginPath();x
 $("ico").href=c.toDataURL("image/png")}catch(e){}
 if(now){$("name").textContent=now.n;$("meta").textContent=now.g||"Live radio";queue=[now]}
 setBtn(false);
-filt={name:"",state:"Delhi"};
+chipEls["All"].classList.add("sel");
+filt={name:"",state:""};
 find();
 })();
 </script>
