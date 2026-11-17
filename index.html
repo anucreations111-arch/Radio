@@ -106,6 +106,7 @@ li .s{background:none;border:0;color:#b8741a;font-size:1.5rem;padding:6px 12px;l
 </div>
 <div id="vFind">
 <input type="text" id="q" placeholder="Search a station name" enterkeyhint="search" autocomplete="off" autocapitalize="off">
+<div class="chips" id="bands"></div>
 <div class="chips" id="cities"></div>
 <div class="chips" id="chips"></div>
 <label class="opt"><input type="checkbox" id="in" checked> India only</label>
@@ -150,7 +151,33 @@ return fetch(SERVERS[i++]+path,{signal:c.signal}).then(function(r){clearTimeout(
 }
 return next();
 }
+function mapSt(s){
+var g=[s.state,s.language].filter(Boolean).join(" · ")||(s.tags||"").split(",").slice(0,2).join(", ");
+if(!/^https:\/\//i.test(s.url_resolved))g=(g?g+" · ":"")+"may not play";
+return{n:(s.name||"").trim(),g:g,u:s.url_resolved,st:(s.state||"")}
+}
+function findAM(){
+var city=filt.city||"",typed=filt.name||"",only=$("sec").checked;
+status("Searching…");results=[];draw();
+var terms=["All India Radio","Akashvani","AIR"];
+Promise.all(terms.map(function(t){
+return api("/json/stations/search?hidebroken=true&order=clickcount&reverse=true&limit=300&countrycode=IN&name="+encodeURIComponent(t)).catch(function(){return[]})
+})).then(function(lists){
+var seen={};
+var out=[].concat.apply([],lists).filter(function(s){
+var n=s.name||"";
+if(!s.url_resolved||(only&&!/^https:\/\//i.test(s.url_resolved)))return false;
+var am=/\b(AM|MW)\b|medium wave|primary channel|national channel/i.test(n)||(/\b(AIR|Akashvani|All India Radio)\b/i.test(n)&&!/\bFM\b|rainbow|gold/i.test(n));
+if(!am)return false;
+if(typed&&n.toLowerCase().indexOf(typed.toLowerCase())<0)return false;
+if(city){var c=city.toLowerCase(),st=(s.state||"").toLowerCase();if(n.toLowerCase().indexOf(c)<0&&!(c==="delhi"?st.indexOf("delhi")>-1:st.indexOf("uttar")>-1))return false}
+return true}).map(mapSt).filter(function(s){var k=s.n.toLowerCase();if(!s.n||seen[k])return false;seen[k]=1;return true});
+results=out.slice(0,150);
+status(results.length?results.length+" AM stations":"No AM stations found");draw();
+});
+}
 function find(){
+if(filt.band==="AM"){findAM();return}
 var brand=filt.name,city=filt.city||"",delhi=/delhi/i.test(city);
 var p="/json/stations/search?hidebroken=true&order=clickcount&reverse=true&limit=500";
 if(brand)p+="&name="+encodeURIComponent(brand);
@@ -162,11 +189,9 @@ status("Searching…");results=[];draw();
 api(p).then(function(list){
 var seen={},only=$("sec").checked;
 feat.forEach(function(f){seen[f.n.toLowerCase()]=1});
-var rest=list.filter(function(s){return s.url_resolved&&(!only||/^https:\/\//i.test(s.url_resolved))}).map(function(s){
-var g=[s.state,s.language].filter(Boolean).join(" · ")||(s.tags||"").split(",").slice(0,2).join(", ");
-if(!/^https:\/\//i.test(s.url_resolved))g=(g?g+" · ":"")+"may not play";
-return{n:(s.name||"").trim(),g:g,u:s.url_resolved,st:(s.state||"")}
-}).filter(function(s){var k=s.n.toLowerCase();if(!s.n||seen[k])return false;seen[k]=1;return true});
+var rest=list.filter(function(s){return s.url_resolved&&(!only||/^https:\/\//i.test(s.url_resolved))}).map(mapSt).filter(function(s){
+if(filt.band==="FM"&&/\b(AM|MW)\b/i.test(s.n))return false;
+var k=s.n.toLowerCase();if(!s.n||seen[k])return false;seen[k]=1;return true});
 if(brand&&city&&!delhi){
 var A=rest.filter(function(s){return s.n.toLowerCase().indexOf(city.toLowerCase())>-1});
 var B=rest.filter(function(s){return A.indexOf(s)<0&&/uttar/i.test(s.st)});
@@ -237,7 +262,7 @@ $("tFind").setAttribute("aria-selected",v==="find");$("tSaved").setAttribute("ar
 $("tFind").onclick=function(){tab("find");queue=results};
 $("tSaved").onclick=function(){tab("saved");queue=favs};
 $("q").addEventListener("input",function(){
-filt={name:this.value.trim(),state:"",city:""};
+filt={name:this.value.trim(),state:"",city:"",band:filt.band||""};
 ["cities","chips"].forEach(function(id){[].forEach.call($(id).children,function(x,i){x.classList.toggle("sel",i===0)})});
 clearTimeout(timer);timer=setTimeout(find,450);
 });
@@ -257,6 +282,8 @@ $("q").value="";find();
 box.appendChild(b);
 });
 }
+var BANDS=[{l:"FM + AM"},{l:"FM"},{l:"AM"}];
+mkChips(BANDS,$("bands"),"band");
 mkChips(CITIES,$("cities"),"city");
 mkChips(BRANDS,$("chips"),"name");
 if("mediaSession" in navigator){
